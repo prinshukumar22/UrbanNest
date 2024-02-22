@@ -10,6 +10,17 @@ const app = express();
 //! for parsing json data
 app.use(express.json());
 
+//! handling CORS error
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, PUT"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorisation");
+  next();
+});
+
 //! for handling authorisation related routes
 app.use("/api/auth", userAuth);
 

@@ -15,7 +15,7 @@ export const postSignup = (req, res, next) => {
       return newUser.save();
     })
     .then((result) => {
-      res.status(201).json({ message: "User created!" });
+      res.status(201).json({ message: "User created!", success: true });
     })
     .catch((err) => {
       next(errorHandler(550, err.message));
