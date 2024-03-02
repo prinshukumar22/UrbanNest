@@ -44,10 +44,65 @@ export const postSignIn = (req, res, next) => {
         process.env.SECRET_KEY,
         { expiresIn: "1d" }
       );
-      const { _id, username } = user;
+      const { _id, username, avatar } = user;
       res
         .status(201)
-        .json({ token, success: true, id: _id.toString(), username });
+        .json({ token, success: true, id: _id.toString(), username, avatar });
+    })
+    .catch((err) => {
+      next(errorHandler(550, err.message));
+    });
+};
+
+export const googleSignIn = (req, res, next) => {
+  const { email, name, photo } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        const generatedPwd =
+          Math.random().toString(36).slice(-8) +
+          Math.random.toString(36).slice(-8);
+        const hashPwd = bcrypt.hashSync(generatedPwd, 12);
+        const newUser = new User({
+          username:
+            name.split(" ").join("").toLowerCase() +
+            Math.random().toString(36).slice(-4),
+          email,
+          password: hashPwd,
+          avatar: photo,
+        });
+        return newUser.save();
+      } else {
+        const token = jwt.sign(
+          {
+            email: user.email,
+            userId: user._id.toString(),
+          },
+          process.env.SECRET_KEY,
+          { expiresIn: "1d" }
+        );
+        const { _id, username, avatar } = user;
+        res
+          .status(201)
+          .json({ token, success: true, id: _id.toString(), username, avatar });
+        return null;
+      }
+    })
+    .then((user) => {
+      if (user) {
+        const token = jwt.sign(
+          {
+            email: user.email,
+            userId: user._id.toString(),
+          },
+          process.env.SECRET_KEY,
+          { expiresIn: "1d" }
+        );
+        const { _id, username, avatar } = user;
+        res
+          .status(201)
+          .json({ token, success: true, id: _id.toString(), username, avatar });
+      }
     })
     .catch((err) => {
       next(errorHandler(550, err.message));
