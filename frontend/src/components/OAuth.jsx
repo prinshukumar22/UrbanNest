@@ -19,7 +19,7 @@ const OAuth = () => {
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
       const result = await signInWithPopup(auth, provider);
-      console.log(result);
+
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: {
@@ -31,6 +31,7 @@ const OAuth = () => {
           photo: result.user.photoURL,
         }),
       });
+
       const data = await res.json();
       dispatch(signInSuccess(data));
       console.log(data);
