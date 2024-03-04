@@ -18,14 +18,36 @@ const Profile = () => {
   });
   const [file, setFile] = useState(null);
   //console.log(file);
+
   const [progress, setProgress] = useState(0);
   //console.log(progress);
+
   const [fileUploadError, setFileUploadError] = useState(false);
 
   const fileRef = useRef();
 
   const submitHandler = (e) => {
     e.preventDefault();
+    fetch("/api/user/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...formData,
+      }),
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        const { message, success } = data;
+        if (!success) {
+          throw new Error(message);
+        }
+        console.log(data);
+      })
+      .catch((err) => console.log(err));
   };
 
   const fileChangeHandler = () => {
@@ -54,15 +76,18 @@ const Profile = () => {
     uploadTask.on(
       "state_changed",
       (snapshot) => {
+        //!progress capture kar raha hu
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         //console.log(progress);
         setProgress(progress);
       },
-      (error) => {
+      () => {
+        //! error catch kar raha hu
         setFileUploadError(true);
       },
       () => {
+        //! jab successfully image upload hojae tab uska url le raha
         getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
           setFormData((prevFormData) => ({
             ...prevFormData,
@@ -72,6 +97,8 @@ const Profile = () => {
       }
     );
   };
+
+  console.log(formData);
 
   const handleChange = (e) => {
     setFormData((prevFormData) => ({

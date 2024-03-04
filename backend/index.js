@@ -1,14 +1,20 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+
 dotenv.config();
 
 import userAuth from "./routes/authRoute.js";
+import userRoute from "./routes/userRoute.js";
 
 const app = express();
 
 //! for parsing json data
 app.use(express.json());
+
+//! for handling cookies
+app.use(cookieParser());
 
 //! handling CORS error
 app.use((req, res, next) => {
@@ -23,6 +29,8 @@ app.use((req, res, next) => {
 
 //! for handling authorisation related routes
 app.use("/api/auth", userAuth);
+
+app.use("/api/user", userRoute);
 
 //! for error handling
 app.use((err, req, res, next) => {

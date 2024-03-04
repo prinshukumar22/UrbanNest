@@ -46,6 +46,7 @@ export const postSignIn = (req, res, next) => {
       );
       const { _id, username, avatar } = user;
       res
+        .cookie("access_token", token, { httpOnly: true })
         .status(201)
         .json({ token, success: true, id: _id.toString(), username, avatar });
     })
@@ -83,6 +84,7 @@ export const googleSignIn = (req, res, next) => {
         );
         const { _id, username, avatar } = user;
         res
+          .cookie("access_token", token, { httpOnly: true })
           .status(201)
           .json({ token, success: true, id: _id.toString(), username, avatar });
         return null;
@@ -100,6 +102,7 @@ export const googleSignIn = (req, res, next) => {
         );
         const { _id, username, avatar } = user;
         res
+          .cookie("access_token", token, { httpOnly: true })
           .status(201)
           .json({ token, success: true, id: _id.toString(), username, avatar });
       }
