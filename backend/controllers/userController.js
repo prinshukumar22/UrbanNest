@@ -60,3 +60,13 @@ export const deleteUser = (req, res, next) => {
       next(errorHandler(550, err.message));
     });
 };
+
+export const signOutUser = (req, res, next) => {
+  if (req.user.userId !== req.params.userId)
+    return next(errorHandler(401, "You can only update your profile"));
+
+  res.cookie("access_token", "", { maxAge: -1 }).status(200).json({
+    message: "User have been logged out!!!",
+    success: true,
+  });
+};
