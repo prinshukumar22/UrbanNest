@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useState, useRef, useEffect } from "react";
 import { app } from "../../oAuth";
 import {
@@ -7,14 +7,22 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
+import {
+  updateUserStart,
+  updateUserFailure,
+  updateUserSuccess,
+} from "../redux/user/userSlice";
 
 const Profile = () => {
   const { currentUser, loading, error } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  console.log(currentUser, loading, error);
+
   const [formData, setFormData] = useState({
-    email: "",
+    email: currentUser.email || "",
     password: "",
-    username: "",
-    avatar: "",
+    username: currentUser.username || "",
+    avatar: currentUser.avatar || "",
   });
   const [file, setFile] = useState(null);
   //console.log(file);
@@ -28,7 +36,8 @@ const Profile = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    fetch("/api/user/update", {
+    dispatch(updateUserStart());
+    fetch(`/api/user/update/${currentUser.id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,9 +54,11 @@ const Profile = () => {
         if (!success) {
           throw new Error(message);
         }
-        console.log(data);
+        dispatch(updateUserSuccess(data));
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        dispatch(updateUserFailure(err.message));
+      });
   };
 
   const fileChangeHandler = () => {
@@ -79,8 +90,9 @@ const Profile = () => {
         //!progress capture kar raha hu
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
         //console.log(progress);
-        setProgress(progress);
+        setProgress(Math.round(progress));
       },
       () => {
         //! error catch kar raha hu
@@ -167,6 +179,7 @@ const Profile = () => {
         <button
           type="submit"
           className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          disabled={loading}
         >
           {loading ? "Loading..." : "Update"}
         </button>
@@ -175,7 +188,10 @@ const Profile = () => {
         <span className="text-red-700 cursor-pointer">Delete account</span>
         <span className="text-red-700 cursor-pointer">Sign out</span>
       </div>
-      {error && <p className="mt-5 text-red-700">{error}</p>}
+      {error && <p className="mt-5 text-red-700 text-center">{error}</p>}
+      {!error && currentUser.success && (
+        <p className="mt-5 text-green-700 text-center">{currentUser.message}</p>
+      )}
     </div>
   );
 };

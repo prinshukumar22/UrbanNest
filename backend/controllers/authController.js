@@ -44,11 +44,21 @@ export const postSignIn = (req, res, next) => {
         process.env.SECRET_KEY,
         { expiresIn: "1d" }
       );
-      const { _id, username, avatar } = user;
+      const { _id, username, avatar, email } = user;
       res
-        .cookie("access_token", token, { httpOnly: true })
+        .cookie("access_token", token, {
+          httpOnly: true,
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        })
         .status(201)
-        .json({ token, success: true, id: _id.toString(), username, avatar });
+        .json({
+          token,
+          success: true,
+          id: _id.toString(),
+          username,
+          avatar,
+          email,
+        });
     })
     .catch((err) => {
       next(errorHandler(550, err.message));
@@ -82,11 +92,15 @@ export const googleSignIn = (req, res, next) => {
           process.env.SECRET_KEY,
           { expiresIn: "1d" }
         );
-        const { _id, username, avatar } = user;
-        res
-          .cookie("access_token", token, { httpOnly: true })
-          .status(201)
-          .json({ token, success: true, id: _id.toString(), username, avatar });
+        const { _id, username, avatar, email } = user;
+        res.cookie("access_token", token, { httpOnly: true }).status(201).json({
+          token,
+          success: true,
+          id: _id.toString(),
+          username,
+          avatar,
+          email,
+        });
         return null;
       }
     })
@@ -100,11 +114,15 @@ export const googleSignIn = (req, res, next) => {
           process.env.SECRET_KEY,
           { expiresIn: "1d" }
         );
-        const { _id, username, avatar } = user;
-        res
-          .cookie("access_token", token, { httpOnly: true })
-          .status(201)
-          .json({ token, success: true, id: _id.toString(), username, avatar });
+        const { _id, username, avatar, email } = user;
+        res.cookie("access_token", token, { httpOnly: true }).status(201).json({
+          token,
+          success: true,
+          id: _id.toString(),
+          username,
+          avatar,
+          email,
+        });
       }
     })
     .catch((err) => {

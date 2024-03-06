@@ -13,7 +13,7 @@ export const updateUser = (req, res, next) => {
       if (!user) {
         throw new Error("User Doesn't exists");
       }
-      console.log(user);
+      //console.log(user);
       user.email = email.trim() === "" ? user.email : email;
       user.avatar = avatar.trim() === "" ? user.avatar : avatar;
       user.username =
