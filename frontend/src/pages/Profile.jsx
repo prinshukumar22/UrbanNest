@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useRef, useEffect } from "react";
+import { deleteUser, getAuth } from "firebase/auth";
 import { app } from "../../oAuth";
 import {
   getDownloadURL,
@@ -11,6 +12,9 @@ import {
   updateUserStart,
   updateUserFailure,
   updateUserSuccess,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure,
 } from "../redux/user/userSlice";
 
 const Profile = () => {
@@ -37,7 +41,7 @@ const Profile = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(updateUserStart());
-    fetch(`/api/user/update/${currentUser.id}`, {
+    fetch(`/api/user/update/${currentUser._id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -110,13 +114,48 @@ const Profile = () => {
     );
   };
 
-  console.log(formData);
-
   const handleChange = (e) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
       [e.target.id]: e.target.value,
     }));
+  };
+
+  const deleteHandler = () => {
+    if (window.confirm("Are you sure to delete this user?")) {
+      dispatch(deleteUserStart());
+
+      const auth = getAuth(app);
+      const user = auth.currentUser;
+
+      if (user) {
+        deleteUser(user)
+          .then(() => {
+            console.log("User account deleted.");
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+
+      fetch(`/api/user/delete/${currentUser.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          if (!data.success) {
+            throw new Error(data.message);
+          }
+          dispatch(deleteUserSuccess());
+        })
+        .catch((err) => {
+          dispatch(deleteUserFailure(err.message));
+        });
+    }
   };
 
   return (
@@ -185,7 +224,9 @@ const Profile = () => {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete account</span>
+        <span className="text-red-700 cursor-pointer" onClick={deleteHandler}>
+          Delete account
+        </span>
         <span className="text-red-700 cursor-pointer">Sign out</span>
       </div>
       {error && <p className="mt-5 text-red-700 text-center">{error}</p>}

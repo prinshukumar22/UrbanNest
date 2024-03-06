@@ -28,11 +28,32 @@ export const updateUser = (req, res, next) => {
       return user.save();
     })
     .then((result) => {
-      const { password, ...rest } = updatedUser._doc;
+      const { password, _id, ...rest } = updatedUser._doc;
       res.status(201).json({
         message: "User updated successfully",
+        id: _id,
         success: true,
         ...rest,
+      });
+    })
+    .catch((err) => {
+      next(errorHandler(550, err.message));
+    });
+};
+
+export const deleteUser = (req, res, next) => {
+  if (req.user.userId !== req.params.userId)
+    return next(errorHandler(401, "You can only update your profile"));
+
+  User.deleteOne({ _id: req.user.userId })
+    .then((result) => {
+      if (result.deletedCount === 0) {
+        throw new Error("User not found");
+      }
+
+      res.cookie("access_token", "", { maxAge: -1 }).status(200).json({
+        message: "User deleted successfully",
+        success: true,
       });
     })
     .catch((err) => {
