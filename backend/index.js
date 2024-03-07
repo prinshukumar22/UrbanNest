@@ -7,6 +7,7 @@ dotenv.config();
 
 import userAuth from "./routes/authRoute.js";
 import userRoute from "./routes/userRoute.js";
+import listingRoute from "./routes/listingRoute.js";
 
 const app = express();
 
@@ -30,7 +31,11 @@ app.use((req, res, next) => {
 //! for handling authorisation related routes
 app.use("/api/auth", userAuth);
 
+//! for handling user related routes
 app.use("/api/user", userRoute);
+
+//! for handling listing related routes
+app.use("/api/listing", listingRoute);
 
 //! for error handling
 app.use((err, req, res, next) => {
