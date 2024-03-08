@@ -48,7 +48,7 @@ export const postSignIn = (req, res, next) => {
       res
         .cookie("access_token", token, {
           httpOnly: true,
-          maxAge: 365 * 24 * 60 * 60 * 1000,
+          maxAge: 24 * 60 * 60 * 1000,
         })
         .status(201)
         .json({
@@ -93,14 +93,20 @@ export const googleSignIn = (req, res, next) => {
           { expiresIn: "1d" }
         );
         const { _id, username, avatar, email } = user;
-        res.cookie("access_token", token, { httpOnly: true }).status(201).json({
-          token,
-          success: true,
-          id: _id.toString(),
-          username,
-          avatar,
-          email,
-        });
+        res
+          .cookie("access_token", token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+          })
+          .status(201)
+          .json({
+            token,
+            success: true,
+            id: _id.toString(),
+            username,
+            avatar,
+            email,
+          });
         return null;
       }
     })
@@ -115,14 +121,20 @@ export const googleSignIn = (req, res, next) => {
           { expiresIn: "1d" }
         );
         const { _id, username, avatar, email } = user;
-        res.cookie("access_token", token, { httpOnly: true }).status(201).json({
-          token,
-          success: true,
-          id: _id.toString(),
-          username,
-          avatar,
-          email,
-        });
+        res
+          .cookie("access_token", token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+          })
+          .status(201)
+          .json({
+            token,
+            success: true,
+            id: _id.toString(),
+            username,
+            avatar,
+            email,
+          });
       }
     })
     .catch((err) => {

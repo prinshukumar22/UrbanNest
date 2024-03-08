@@ -1,4 +1,83 @@
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { useState } from "react";
+import { app } from "../../oAuth";
+
 const CreateListing = () => {
+  const [file, setFile] = useState([]);
+  const [formData, setFormData] = useState({
+    imageUrls: [],
+  });
+  const [imageUploadError, setImageUploadError] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  console.log(file);
+  console.log(formData);
+
+  const uploadListingHandler = () => {
+    setUploading(true);
+    if (file.length > 0 && file.length + formData.imageUrls.length < 7) {
+      const promises = [];
+      for (let i = 0; i < file.length; i++) {
+        promises.push(storeImage(file[i]));
+      }
+
+      Promise.all(promises)
+        .then((urls) => {
+          setFormData({
+            ...formData,
+            imageUrls: formData.imageUrls.concat(urls),
+          });
+          setUploading(false);
+          setImageUploadError(false);
+        })
+        .catch(() => {
+          setUploading(false);
+          setImageUploadError("You can only upload images upto 2mb size");
+        });
+    } else {
+      setUploading(false);
+      setImageUploadError("Maximum 6 Images are allowed.");
+    }
+  };
+
+  const storeImage = async (fileToUpload) => {
+    return new Promise((resolve, reject) => {
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + fileToUpload.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(progress);
+        },
+        (err) => {
+          reject(err);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData({
+      ...formData,
+      imageUrls: formData.imageUrls.filter((_, id) => id !== index),
+    });
+  };
+
   return (
     <main className="p-3 max-w-4xl mx-auto">
       <h1 className="text-4xl font-semibold text-center my-6">
@@ -102,15 +181,45 @@ const CreateListing = () => {
               accept="image/*"
               className="p-3 border border-gray-300 rounded w-full"
               id="images"
+              onChange={(e) => {
+                setFile(Array.from(e.target.files));
+              }}
             ></input>
-            <button className="p-3 text-green-700 border border-green-700 rounded uppercase hover:shadow-lg disabled:opacity-80">
-              Upload
+            <button
+              type="button"
+              className="p-3 text-green-700 border border-green-700 rounded uppercase hover:shadow-lg disabled:opacity-80"
+              onClick={uploadListingHandler}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Upload"}
             </button>
           </div>
-          <button
-            type="submit"
-            className="bg-green-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
-          >
+          {imageUploadError && (
+            <p className="text-red-700 text-sm">{imageUploadError}</p>
+          )}
+          {formData.imageUrls.length > 0 &&
+            formData.imageUrls.map((url, idx) => (
+              <div
+                key={idx}
+                className="flex justify-between p-3 border items-center"
+              >
+                <img
+                  src={url}
+                  className="w-20 h-20 object-contain rounded-lg"
+                  alt="listing-image"
+                ></img>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleRemoveImage(idx);
+                  }}
+                  className="p-3 text-red-700 rounded-lg uppercase opacity-75"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          <button className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
             Create Listing
           </button>
         </div>

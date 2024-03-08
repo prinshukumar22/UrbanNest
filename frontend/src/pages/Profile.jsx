@@ -38,6 +38,8 @@ const Profile = () => {
   const [progress, setProgress] = useState(0);
   //console.log(progress);
 
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
   const [fileUploadError, setFileUploadError] = useState(false);
 
   const fileRef = useRef();
@@ -45,7 +47,7 @@ const Profile = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(updateUserStart());
-    fetch(`/api/user/update/${currentUser._id}`, {
+    fetch(`/api/user/update/${currentUser.id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,6 +65,7 @@ const Profile = () => {
           throw new Error(message);
         }
         dispatch(updateUserSuccess(data));
+        setUpdateSuccess(message);
       })
       .catch((err) => {
         dispatch(updateUserFailure(err.message));
@@ -261,7 +264,7 @@ const Profile = () => {
       </div>
       {error && <p className="mt-5 text-red-700 text-center">{error}</p>}
       {!error && currentUser.success && (
-        <p className="mt-5 text-green-700 text-center">{currentUser.message}</p>
+        <p className="mt-5 text-green-700 text-center">{updateSuccess}</p>
       )}
     </div>
   );
