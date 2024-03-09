@@ -42,6 +42,10 @@ const Profile = () => {
 
   const [fileUploadError, setFileUploadError] = useState(false);
 
+  const [listings, setListings] = useState([]);
+
+  const [listingerror, setListingerror] = useState(null);
+
   const fileRef = useRef();
 
   const submitHandler = (e) => {
@@ -183,6 +187,44 @@ const Profile = () => {
       .catch((err) => dispatch(signOutFailure(err.message)));
   };
 
+  const showListingsHandler = () => {
+    setListingerror(false);
+    fetch(`/api/listing/getlistings/${currentUser.id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) {
+          throw new Error(data.message);
+        }
+        setListings(data.listings);
+      })
+      .catch((err) => {
+        setListingerror(err);
+      });
+  };
+
+  const deleteListingHandler = (listing_id) => {
+    setListingerror(false);
+    fetch(`/api/listing/deletelisting/${listing_id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) throw new Error(data.message);
+        setListings((listings) => {
+          return listings.filter((listing) => listing._id !== listing_id);
+        });
+      })
+      .catch((err) => setListingerror(err));
+  };
+
   return (
     <div className="mx-auto max-w-lg p-3">
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
@@ -258,13 +300,70 @@ const Profile = () => {
         <span className="text-red-700 cursor-pointer" onClick={deleteHandler}>
           Delete account
         </span>
-        <span className="text-red-700 cursor-pointer" onClick={signoutHandler}>
+        <span
+          className="text-green-700 cursor-pointer"
+          onClick={showListingsHandler}
+        >
+          Show Listings
+        </span>
+        <span
+          className="text-red-700 cursor-pointer text-center"
+          onClick={signoutHandler}
+        >
           Sign out
         </span>
       </div>
-      {error && <p className="mt-5 text-red-700 text-center">{error}</p>}
+      {(error || listingerror) && (
+        <p className="mt-5 text-red-700 text-center">{error || listingerror}</p>
+      )}
       {!error && currentUser.success && (
         <p className="mt-5 text-green-700 text-center">{updateSuccess}</p>
+      )}
+
+      {listings.length > 0 && (
+        <div className="flex flex-col gap-4 items-center">
+          <h1 className="text-2xl font-semibold text-center mt-6">
+            My Listings
+          </h1>
+          {listings.map((listing, idx) => {
+            return (
+              <div
+                key={idx}
+                className="flex justify-between p-3 border items-center gap-3 w-full"
+              >
+                <Link to={`/listing/${listing._id}`}>
+                  <img
+                    src={listing.imageUrls[0]}
+                    className="w-20 h-20 object-cover"
+                    alt="listing-image"
+                  ></img>
+                </Link>
+                <Link to={`/listing/${listing._id}`}>
+                  <p className="font-semibold text-slate-700 flex-1 hover:underline truncate">
+                    {listing.name}
+                  </p>
+                </Link>
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    className=" text-red-700 rounded-lg uppercase opacity-75"
+                    onClick={() => {
+                      deleteListingHandler(listing._id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    className=" text-green-700 rounded-lg uppercase opacity-75"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

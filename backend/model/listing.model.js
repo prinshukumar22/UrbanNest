@@ -7,7 +7,7 @@ const listingSchema = new mongoose.Schema(
       required: true,
     },
     description: {
-      type: String,
+      type: String, 
       required: true,
     },
     regularPrice: {
@@ -18,7 +18,7 @@ const listingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    discountedPrice: {
+    discountPrice: {
       type: Number,
       required: true,
     },
