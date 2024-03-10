@@ -32,22 +32,41 @@ export const getListings = (req, res, next) => {
 };
 
 export const deleteListing = (req, res, next) => {
-  Listing.findById(req.params.listingId).then((listing) => {
-    if (!listing) {
-      return next(errorHandler(404, "No such listing exists"));
-    }
+  Listing.findById(req.params.listingId)
+    .then((listing) => {
+      if (!listing) {
+        throw new Error("No such listing exists");
+      }
 
-    if (req.user.userId !== listing.userRef.toString()) {
-      return next(errorHandler(404, "You can only delete your own listings"));
-    }
-  });
+      if (req.user.userId !== listing.userRef) {
+        throw new Error("You can only delete your own listings");
+      }
+    })
+    .catch((err) => next(errorHandler(404, err)));
 
   Listing.deleteOne({ _id: req.params.listingId })
-    .then(() =>
+    .then(() => {
       res.status(200).json({
         message: "Listing deleted successfully",
         success: true,
-      })
-    )
-    .catch((err) => next(errorHandler(err)));
+      });
+    })
+    .catch((err) => next(errorHandler(404, err)));
+};
+
+export const updateListing = (req, res, next) => {
+  Listing.findByIdAndUpdate(req.params.listingId, req.body, { new: true })
+    .then((updatedListing) => {
+      if (req.user.userId !== updatedListing.userRef) {
+        throw new Error("You can only update your listings");
+      }
+      res.status(200).json({
+        success: true,
+        message: "Listing Updated Successfully",
+        updatedListing,
+      });
+    })
+    .catch((err) => {
+      next(errorHandler(404, err));
+    });
 };

@@ -353,12 +353,14 @@ const Profile = () => {
                   >
                     Delete
                   </button>
-                  <button
-                    type="button"
-                    className=" text-green-700 rounded-lg uppercase opacity-75"
-                  >
-                    Edit
-                  </button>
+                  <Link className="flex justify-center" to={"/editlisting"}>
+                    <button
+                      type="button"
+                      className=" text-green-700 rounded-lg uppercase opacity-75"
+                    >
+                      Edit
+                    </button>
+                  </Link>
                 </div>
               </div>
             );
