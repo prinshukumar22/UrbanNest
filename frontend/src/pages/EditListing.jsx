@@ -1,7 +1,18 @@
-import { useState } from "react";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { useEffect, useState } from "react";
+import { app } from "../../oAuth";
 import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 
 const EditListing = () => {
+  const { currentUser } = useSelector((state) => state.user);
+  const [file, setFile] = useState([]);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     imageUrls: [],
     name: "",
@@ -16,22 +27,157 @@ const EditListing = () => {
     parking: false,
     furnished: false,
   });
-
+  const [imageUploadError, setImageUploadError] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [createSuccess, setCreateSuccess] = useState(false);
-  const [file, setFile] = useState([]);
-  const [imageUploadError, setImageUploadError] = useState(false);
-  const { currentUser, error } = useSelector((state) => state.user);
 
-  const submitHandler = () => {};
-  const changeInputHandler = () => {};
-  const uploadListingHandler = () => {};
-  const handleRemoveImage = (idx) => {};
+  const params = useParams();
+
+  console.log(file);
+  console.log(formData);
+
+  useEffect(() => {
+    fetch(`/api/listing/get/${params.listingId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) {
+          throw new Error(data.message);
+        }
+        setFormData(data.listing);
+      })
+      .catch((err) => setError(err.message));
+  }, []);
+
+  const uploadListingHandler = () => {
+    setUploading(true);
+    if (file.length > 0 && file.length + formData.imageUrls.length < 7) {
+      const promises = [];
+      for (let i = 0; i < file.length; i++) {
+        promises.push(storeImage(file[i]));
+      }
+
+      Promise.all(promises)
+        .then((urls) => {
+          setFormData({
+            ...formData,
+            imageUrls: formData.imageUrls.concat(urls),
+          });
+          setUploading(false);
+          setImageUploadError(false);
+        })
+        .catch(() => {
+          setUploading(false);
+          setImageUploadError("You can only upload images upto 2mb size");
+        });
+    } else {
+      setUploading(false);
+      setImageUploadError("Maximum 6 Images are allowed.");
+    }
+  };
+
+  const storeImage = async (fileToUpload) => {
+    return new Promise((resolve, reject) => {
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + fileToUpload.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(progress);
+        },
+        (err) => {
+          reject(err);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData({
+      ...formData,
+      imageUrls: formData.imageUrls.filter((_, id) => id !== index),
+    });
+  };
+
+  const changeInputHandler = (e) => {
+    if (e.target.id === "sale" || e.target.id === "rent") {
+      setFormData({
+        ...formData,
+        type: e.target.id,
+      });
+    } else if (
+      e.target.id === "parking" ||
+      e.target.id === "furnished" ||
+      e.target.id === "offer"
+    ) {
+      setFormData({
+        ...formData,
+        [e.target.id]: e.target.checked,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.id]: e.target.value,
+      });
+    }
+  };
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(false);
+    setCreateSuccess(false);
+
+    if (formData.imageUrls.length < 1) {
+      setLoading(false);
+      return setError("You must select atleast one image");
+    }
+    if (+formData.discountPrice > +formData.regularPrice) {
+      setLoading(false);
+      return setError("Discounted price must be less than regular price");
+    }
+
+    fetch(`/api/listing/update/${params.listingId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...formData,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setLoading(false);
+        if (!data.success) {
+          throw new Error(data.message);
+        }
+        setCreateSuccess(data.message);
+        console.log(data);
+        navigate(`/listing/${data.updatedListing._id}`);
+      })
+      .catch((err) => {
+        setLoading(false);
+        setError(err.message);
+      });
+  };
 
   return (
     <main className="p-3 max-w-4xl mx-auto">
-      <h1 className="text-4xl font-semibold text-center my-6">Edit Listing</h1>
+      <h1 className="text-4xl font-semibold text-center my-6">
+        Update Listing
+      </h1>
       <form
         onSubmit={submitHandler}
         className="flex flex-col md:flex-row gap-4"
@@ -232,7 +378,7 @@ const EditListing = () => {
             className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
             disabled={loading || uploading}
           >
-            {loading ? "Loading" : "Create Listing"}
+            {loading ? "Loading" : "Update Listing"}
           </button>
           {error && <p className="text-red-700 text-center">{error}</p>}
           {createSuccess && (

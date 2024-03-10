@@ -203,7 +203,7 @@ const Profile = () => {
         setListings(data.listings);
       })
       .catch((err) => {
-        setListingerror(err);
+        setListingerror(err.message);
       });
   };
 
@@ -313,9 +313,12 @@ const Profile = () => {
           Sign out
         </span>
       </div>
-      {(error || listingerror) && (
-        <p className="mt-5 text-red-700 text-center">{error || listingerror}</p>
+      {error && <p className="mt-5 text-red-700 text-center">{error}</p>}
+
+      {listingerror && (
+        <p className="mt-5 text-red-700 text-center">{listingerror}</p>
       )}
+
       {!error && currentUser.success && (
         <p className="mt-5 text-green-700 text-center">{updateSuccess}</p>
       )}
@@ -353,7 +356,10 @@ const Profile = () => {
                   >
                     Delete
                   </button>
-                  <Link className="flex justify-center" to={"/editlisting"}>
+                  <Link
+                    className="flex justify-center"
+                    to={`/editlisting/${listing._id}`}
+                  >
                     <button
                       type="button"
                       className=" text-green-700 rounded-lg uppercase opacity-75"

@@ -31,6 +31,18 @@ export const getListings = (req, res, next) => {
     });
 };
 
+export const getListing = (req, res, next) => {
+  Listing.findById(req.params.listingId)
+    .then((listing) => {
+      if (!listing) throw new Error("No such listing exists");
+      res.status(201).json({
+        success: true,
+        listing,
+      });
+    })
+    .catch((err) => next(errorHandler(404, err.message)));
+};
+
 export const deleteListing = (req, res, next) => {
   Listing.findById(req.params.listingId)
     .then((listing) => {
@@ -64,7 +76,7 @@ export const updateListing = (req, res, next) => {
         success: true,
         message: "Listing Updated Successfully",
         updatedListing,
-      });
+      }); 
     })
     .catch((err) => {
       next(errorHandler(404, err));
