@@ -6,11 +6,9 @@ import {
 } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { app } from "../../oAuth";
-import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 const EditListing = () => {
-  const { currentUser } = useSelector((state) => state.user);
   const [file, setFile] = useState([]);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -48,7 +46,7 @@ const EditListing = () => {
         setFormData(data.listing);
       })
       .catch((err) => setError(err.message));
-  }, []);
+  }, [params.listingId]);
 
   const uploadListingHandler = () => {
     setUploading(true);
