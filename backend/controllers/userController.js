@@ -70,3 +70,21 @@ export const signOutUser = (req, res, next) => {
     success: true,
   });
 };
+
+export const getUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new Error("No such user exists");
+      }
+
+      const { password, ...rest } = user._doc;
+
+      res.status(200).json({
+        success: true,
+        message: "User retrieved successfully",
+        user: rest,
+      });
+    })
+    .catch((err) => next(errorHandler(404, err.message)));
+};
