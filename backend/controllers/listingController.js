@@ -43,6 +43,53 @@ export const getListing = (req, res, next) => {
     .catch((err) => next(errorHandler(404, err.message)));
 };
 
+export const getAllListings = (req, res, next) => {
+  const limit = parseInt(req.query.limit) || 9; //! no of listings per page
+  const startIndex = parseInt(req.query.index) || 0; //! page no
+
+  let offer = req.query.offer;
+  if (offer === false || offer === undefined) {
+    offer = { $in: [true, false] };
+  }
+
+  let parking = req.query.parking;
+  if (parking === false || parking === undefined) {
+    parking = { $in: [true, false] };
+  }
+
+  let furnished = req.query.furnished;
+  if (furnished === false || furnished === undefined) {
+    furnished = { $in: [true, false] };
+  }
+
+  let type = req.query.type;
+  if (type === "all" || type === undefined) {
+    type = { $in: ["sale", "rent"] };
+  }
+
+  const searchTerm = req.query.searchTerm || "";
+  const sort = req.query.sort || "createdAt";
+  const order = req.query.order || "desc";
+
+  Listing.find({
+    name: { $regex: searchTerm, $options: "i" },
+    offer,
+    furnished,
+    parking,
+    type,
+  })
+    .sort({ [sort]: order })
+    .limit(limit)
+    .skip(startIndex)
+    .then((listings) => {
+      res.status(200).json({
+        listings,
+        success: true,
+      });
+    })
+    .catch((err) => next(errorHandler(404, err.message)));
+};
+
 export const deleteListing = (req, res, next) => {
   Listing.findById(req.params.listingId)
     .then((listing) => {
@@ -76,7 +123,7 @@ export const updateListing = (req, res, next) => {
         success: true,
         message: "Listing Updated Successfully",
         updatedListing,
-      }); 
+      });
     })
     .catch((err) => {
       next(errorHandler(404, err));
