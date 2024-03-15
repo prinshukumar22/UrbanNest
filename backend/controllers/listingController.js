@@ -44,21 +44,22 @@ export const getListing = (req, res, next) => {
 };
 
 export const getAllListings = (req, res, next) => {
+  console.log(req.query);
   const limit = parseInt(req.query.limit) || 9; //! no of listings per page
   const startIndex = parseInt(req.query.index) || 0; //! page no
 
   let offer = req.query.offer;
-  if (offer === false || offer === undefined) {
+  if (offer === "false" || offer === undefined) {
     offer = { $in: [true, false] };
   }
 
   let parking = req.query.parking;
-  if (parking === false || parking === undefined) {
+  if (parking === "false" || parking === undefined) {
     parking = { $in: [true, false] };
   }
 
   let furnished = req.query.furnished;
-  if (furnished === false || furnished === undefined) {
+  if (furnished === "false" || furnished === undefined) {
     furnished = { $in: [true, false] };
   }
 

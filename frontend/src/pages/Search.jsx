@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import ListingCard from "../components/ListingCard";
 const Search = () => {
   const [sidebarData, setSidebarData] = useState({
     searchTerm: "",
@@ -9,6 +10,7 @@ const Search = () => {
     offer: false,
     sort: "createdAt_desc",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -45,17 +47,21 @@ const Search = () => {
       });
     }
 
+    setLoading(true);
     fetch(
-      `
-    /api/listing/get?searchTerm=${urlsearchTerm}&type=${urltype}&offer=${urloffer}&parking=${urlparking}&furnished=${urlfurnished}&sort=${urlsort}`
+      `/api/listing/get?searchTerm=${urlsearchTerm}&type=${urltype}&offer=${urloffer}&parking=${urlparking}&furnished=${urlfurnished}&sort=${urlsort}`
     )
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
         if (!data.success) throw new Error(data.message);
         setListings(data.listings);
+        setLoading(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
   }, [location.search]);
 
   const [listings, setListings] = useState([]);
@@ -224,30 +230,22 @@ const Search = () => {
           </button>
         </form>
       </div>
-      <div className="flex flex-col gap-4 items-center">
+      <div className="flex-1">
         <h1 className="text-3xl font-semibold border-b p-3 text-slate-700 mt-5">
           Listing Results:
         </h1>
-        <div className="flex flex-col items-center gap-4 w-full">
+        <div className="p-7 flex flex-wrap gap-4">
+          {loading && (
+            <p className="text-xl text-slate-700 text-center w-full">
+              Loading...
+            </p>
+          )}
+          {!loading && listings.length === 0 && (
+            <p className="text-xl text-slate-700">No listing found!</p>
+          )}
           {listings.length > 0 &&
             listings.map((listing, idx) => (
-              <div
-                key={idx}
-                className="flex justify-between p-3 border items-center gap-3 w-full"
-              >
-                <Link to={`/listing/${listing._id}`}>
-                  <img
-                    src={listing.imageUrls[0]}
-                    className="w-20 h-20 object-cover"
-                    alt="listing-image"
-                  ></img>
-                </Link>
-                <Link to={`/listing/${listing._id}`}>
-                  <p className="font-semibold text-slate-700 flex-1 hover:underline truncate">
-                    {listing.name}
-                  </p>
-                </Link>
-              </div>
+              <ListingCard key={idx} listing={listing}></ListingCard>
             ))}
         </div>
       </div>
