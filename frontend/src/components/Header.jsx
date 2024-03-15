@@ -21,10 +21,10 @@ const Header = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const searchTerm = urlParams.get("searchTerm");
-    if (searchTerm) {
+    if (searchTerm !== undefined) {
       setSearchTerm(searchTerm);
     }
-  }, []);
+  }, [window.location.search]);
 
   return (
     <header className="bg-slate-200 shadow-md">
@@ -66,7 +66,7 @@ const Header = () => {
               <img
                 src={currentUser.avatar}
                 className="rounded-full object-cover w-7 h-7"
-                alt="profile-pic"
+                alt="dp"
               />
             ) : (
               <li className="text-slate-700 hover:underline">SignIn</li>
