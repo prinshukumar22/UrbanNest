@@ -11,6 +11,7 @@ const Search = () => {
     sort: "createdAt_desc",
   });
   const [loading, setLoading] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -47,6 +48,7 @@ const Search = () => {
       });
     }
 
+    setShowMore(false);
     setLoading(true);
     fetch(
       `/api/listing/get?searchTerm=${urlsearchTerm}&type=${urltype}&offer=${urloffer}&parking=${urlparking}&furnished=${urlfurnished}&sort=${urlsort}`
@@ -55,6 +57,8 @@ const Search = () => {
       .then((data) => {
         console.log(data);
         if (!data.success) throw new Error(data.message);
+        if (data.listings.length > 8) setShowMore(true);
+        else setShowMore(false);
         setListings(data.listings);
         setLoading(false);
       })
@@ -103,6 +107,20 @@ const Search = () => {
     navigate(
       `/search?searchTerm=${sidebarData.searchTerm}&type=${sidebarData.type}&offer=${sidebarData.offer}&parking=${sidebarData.parking}&furnished=${sidebarData.furnished}&sort=${sidebarData.sort}`
     );
+  };
+
+  const onShowMoreHandler = async () => {
+    const noOfListings = listings.length;
+    const startIndex = noOfListings;
+    const urlParams = new URLSearchParams(location.search);
+    urlParams.set("index", startIndex);
+    const searchQuery = urlParams.toString();
+    const res = await fetch(`/api/listing/get?${searchQuery}`);
+    const data = await res.json();
+    if (data.length < 9) {
+      setShowMore(false);
+    }
+    setListings([...listings, ...data.listings]);
   };
 
   return (
@@ -247,6 +265,14 @@ const Search = () => {
             listings.map((listing, idx) => (
               <ListingCard key={idx} listing={listing}></ListingCard>
             ))}
+          {showMore && (
+            <button
+              onClick={onShowMoreHandler}
+              className="text-green-700 hover:underline p-7 text-center w-full"
+            >
+              Show More
+            </button>
+          )}
         </div>
       </div>
     </div>
