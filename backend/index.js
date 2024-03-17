@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ import userAuth from "./routes/authRoute.js";
 import userRoute from "./routes/userRoute.js";
 import listingRoute from "./routes/listingRoute.js";
 
+const __dirname = path.resolve();
 const app = express();
 
 //! for parsing json data
@@ -36,6 +38,12 @@ app.use("/api/user", userRoute);
 
 //! for handling listing related routes
 app.use("/api/listing", listingRoute);
+
+app.use(express.static(path.join(__dirname, "/frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+});
 
 //! for error handling
 app.use((err, req, res, next) => {
