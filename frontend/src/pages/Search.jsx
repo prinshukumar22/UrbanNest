@@ -15,12 +15,12 @@ const Search = () => {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const urlsearchTerm = searchParams.get("searchTerm");
-    const urltype = searchParams.get("type");
-    const urlparking = searchParams.get("parking");
-    const urlfurnished = searchParams.get("furnished");
-    const urloffer = searchParams.get("offer");
-    const urlsort = searchParams.get("sort");
+    const urlsearchTerm = searchParams.get("searchTerm") || "";
+    const urltype = searchParams.get("type") || "all";
+    const urlparking = searchParams.get("parking") || "false";
+    const urlfurnished = searchParams.get("furnished") || "false";
+    const urloffer = searchParams.get("offer") || "false";
+    const urlsort = searchParams.get("sort") || "createdAt_desc";
     console.log(
       urlsearchTerm,
       urltype,
@@ -30,23 +30,14 @@ const Search = () => {
       urlsort
     );
 
-    if (
-      urlsearchTerm ||
-      urlfurnished ||
-      urloffer ||
-      urlparking ||
-      urlsort ||
-      urltype
-    ) {
-      setSidebarData({
-        searchTerm: urlsearchTerm || "",
-        type: urltype || "all",
-        parking: urlparking === "true" ? true : false,
-        furnished: urlfurnished === "true" ? true : false,
-        offer: urloffer === "true" ? true : false,
-        sort: urlsort || "createdAt_desc",
-      });
-    }
+    setSidebarData({
+      searchTerm: urlsearchTerm || "",
+      type: urltype || "all",
+      parking: urlparking === "true" ? true : false,
+      furnished: urlfurnished === "true" ? true : false,
+      offer: urloffer === "true" ? true : false,
+      sort: urlsort || "createdAt_desc",
+    });
 
     setShowMore(false);
     setLoading(true);

@@ -69,8 +69,8 @@ export const getAllListings = (req, res, next) => {
   }
 
   const searchTerm = req.query.searchTerm || "";
-  const sort = req.query.sort.split("_")[0] || "createdAt";
-  const order = req.query.sort.split("_")[1] || "desc";
+  const sort = req.query.sort?.split("_")[0] || "createdAt";
+  const order = req.query.sort?.split("_")[1] || "desc";
 
   Listing.find({
     name: { $regex: searchTerm, $options: "i" },

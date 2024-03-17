@@ -41,7 +41,7 @@ const Header = () => {
             type="text"
             placeholder="Search..."
             className="bg-transparent focus:outline-none w-24 sm:w-64"
-            value={searchTerm}
+            defaultValue={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
