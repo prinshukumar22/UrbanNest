@@ -179,7 +179,7 @@ const Profile = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (!data.success) {
+        if (!data.success && data.message !== "Unauthorised") {
           throw new Error(data.message);
         }
         dispatch(signOutSuccess());
